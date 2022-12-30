@@ -1,3 +1,4 @@
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
@@ -20,16 +21,19 @@ class JCEExample {
 /**
  * Symmetric Encryption 
  * DES: Data Encryption Standard
- * AES: Advanced Encryption Standard
+ * DESede: Triple DES Encryption
+ * AES: Advanced Encryption Standard, a 128-bit block cipher supporting keys of 128, 192, and 256 bits.
+ * @throws InvalidAlgorithmParameterException
  *  
  */
 private static void encrypt() throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException,
         IllegalBlockSizeException, BadPaddingException {
     //Generate key
-    KeyGenerator generator = KeyGenerator.getInstance("DES");
+    KeyGenerator generator = KeyGenerator.getInstance("AES");
+    //generator.init(256); //Using AES-256
     SecretKey key = generator.generateKey();
     //Generate Cipher for encryption
-    Cipher cipher = Cipher.getInstance("DES/ECB/PKCS5Padding");
+    Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding"); //Algorithm name/Mode/Padding
     cipher.init(Cipher.ENCRYPT_MODE, key);
     String data = "testing data";
     byte[] bytes = data.getBytes();
