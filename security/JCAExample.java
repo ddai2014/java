@@ -1,4 +1,10 @@
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.InvalidKeyException;
+import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.MessageDigest;
@@ -9,11 +15,16 @@ import java.security.PublicKey;
 import java.security.Security;
 import java.security.Signature;
 import java.security.SignatureException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
 
 /**
  * Examples of JCA (Java Cryptography Architecture) inlcuding
- * Message Digest, Public/Private Key Pair, and Signatuture
+ * Message Digest, Private/Public Key, Certification, and Signatuture
  * 
  */
 
@@ -21,7 +32,41 @@ class JCAExample {
     public static void main(String[] args) throws Exception {
         //listAllProviders();
         //digest();
-        keypair();
+        //keypair();
+        loadCertification();
+        //loadPrivateKey();
+    }
+
+    private static void loadCertification() throws Exception {
+        //Load a self-signed certificate generated with following script
+        //openssl req -nodes -newkey rsa:2048 -keyout mykey.key -out mycert.crt -x509 -days 365
+        CertificateFactory factory = CertificateFactory.getInstance("X.509");
+        X509Certificate certificate = (X509Certificate)factory.generateCertificate(new FileInputStream("outlook4.p7c"));
+        System.out.println(certificate);
+        PublicKey publicKey = certificate.getPublicKey();
+        byte[] signtures = certificate.getSignature();
+        Signature sign = Signature.getInstance("SHA256withRSA");
+        sign.initVerify(publicKey);
+        sign.update(certificate.getTBSCertificate());
+        boolean result = sign.verify(signtures);
+        System.out.println(result);
+    }
+
+    private static void loadPrivateKey() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        //Load the private key
+        byte[] pkData = Files.readAllBytes(Paths.get("mykey.key"));
+        String pkString = new String(pkData, Charset.defaultCharset());
+        String encoded = pkString.replace("-----BEGIN PRIVATE KEY-----", "").
+                                  replaceAll("\n", "").
+                                  replaceAll("\r", "").
+                                  replace("-----END PRIVATE KEY-----", "");
+        System.out.println(encoded);
+        byte[] pk = Base64.getDecoder().decode(encoded);                       
+
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(pk);
+        PrivateKey privateKey = keyFactory.generatePrivate(keySpec);
+        System.out.println(privateKey);
     }
 
     private static void keypair() throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {

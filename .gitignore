@@ -1,0 +1,12 @@
+my_keystore.jks
+mycert.crt
+mykey.key
+outlook1.crt
+outlook2.crt
+outlook3.der
+outlook4.p7c
+www.google.crt
+www.google.p7c
+.metals/metals.lock.db
+.metals/metals.log
+.metals/metals.mv.db
